@@ -1,6 +1,7 @@
 TEMPLATE  = subdirs
 
-SUBDIRS  += 3rdparty
+SUBDIRS  += 3rdparty \
+    QQCameraCalibration
 
 SUBDIRS  += lib
 lib.depends = 3rdparty
