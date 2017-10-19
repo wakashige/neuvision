@@ -41,11 +41,17 @@
 #include <pcl/segmentation/sac_segmentation.h>
 #include <pcl/visualization/histogram_visualizer.h>
 #include <pcl/visualization/pcl_plotter.h>
+#include <pcl/surface/vtk_smoothing/vtk_utils.h>
 
 #include <vtkRenderer.h>
 #include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkCamera.h>
 #include <vtkRenderWindow.h>
+#include "vtkActor.h"
+#include "vtkPolyDataMapper.h"
+#include "vtkProperty.h"
+#include <vtkRegularPolygonSource.h>
+#include "vtkGlyph3DMapper.h"
 
 #include <QDebug>
 #include <QFileDialog>
@@ -110,9 +116,14 @@ ZCloudViewWindow::ZCloudViewWindow(QWidget *parent)
     m_currentBackgroundColor.setRedF(0.1);
     m_currentBackgroundColor.setGreenF(0.1);
     m_currentBackgroundColor.setBlueF(0.1);
-    m_pclViewer->setBackgroundColor(m_currentBackgroundColor.redF(),
-                                    m_currentBackgroundColor.greenF(),
-                                    m_currentBackgroundColor.blueF());
+
+    m_renderer->SetGradientBackground(true);
+    m_renderer->SetBackground(m_currentBackgroundColor.redF(),
+                              m_currentBackgroundColor.greenF(),
+                              m_currentBackgroundColor.blueF());
+    m_renderer->SetBackground2(m_currentBackgroundColor.redF() + 0.2,
+                               m_currentBackgroundColor.greenF() + 0.2,
+                               m_currentBackgroundColor.blueF() + 0.2);
 
     /// init some default camera parameters
     m_pclViewer->initCameraParameters();
@@ -121,10 +132,7 @@ ZCloudViewWindow::ZCloudViewWindow(QWidget *parent)
     m_pclViewer->setShowFPS(false);
 
     /// set orthographic projection
-    vtkSmartPointer<vtkRendererCollection> rendererCollection = m_pclViewer->getRenderWindow()->GetRenderers();
-    rendererCollection->InitTraversal();
-    vtkSmartPointer<vtkRenderer> renderer = rendererCollection->GetNextItem();
-    vtkSmartPointer<vtkCamera> camera = renderer->GetActiveCamera();
+    vtkSmartPointer<vtkCamera> camera = m_renderer->GetActiveCamera();
     camera->ParallelProjectionOn();
     camera->SetParallelScale(1000);
 
@@ -731,9 +739,11 @@ void ZCloudViewWindow::on_actionDownsample_triggered()
     QTime time;
     time.start();
 
+    auto pointCloud = m_pointCloud->pclPointCloud();
+
     /// Create the filtering object
     pcl::VoxelGrid<PointType> voxelgrid;
-    voxelgrid.setInputCloud (m_pointCloud->pclPointCloud());
+    voxelgrid.setInputCloud (pointCloud);
     voxelgrid.setLeafSize (leafSize, leafSize, leafSize);
 
     voxelgrid.filter(*cloudFiltered);
@@ -1391,9 +1401,84 @@ void ZCloudViewWindow::on_actionViewNormals_toggled(bool arg1)
 void ZCloudViewWindow::on_actionViewPoints_toggled(bool arg1)
 {
     if (arg1) {
-        m_pclViewer->addPointCloud<PointType>(m_pointCloud->pclPointCloud(),
+        /*m_pclViewer->addPointCloud<PointType>(m_pointCloud->pclPointCloud(),
                                               *m_pointCloud->colorHandler(),
-                                              qPrintable(m_pointCloud->id()));
+                                              qPrintable(m_pointCloud->id()));*/
+
+        auto pointCloud = m_pointCloud->pclPointCloud();
+
+        QTime time;
+            time.start();
+
+            /// create point cloudl poly data
+            vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
+            vtkSmartPointer<vtkCellArray> verts = vtkSmartPointer<vtkCellArray>::New();
+            vtkSmartPointer<vtkUnsignedCharArray> colors = vtkSmartPointer<vtkUnsignedCharArray>::New ();
+            colors->SetNumberOfComponents(3);
+            colors->SetNumberOfTuples(pointCloud->points.size());
+            vtkSmartPointer<vtkFloatArray> normals = vtkSmartPointer<vtkFloatArray>::New();
+            normals->SetNumberOfComponents(3);
+            normals->SetNumberOfTuples(pointCloud->points.size());
+            for (const auto &point : pointCloud->points) {
+                const auto i = points->InsertNextPoint(point.x, point.y, point.z);
+                verts->InsertNextCell(1, &i);
+                normals->SetTuple3(i, 1, 0, 0);
+                colors->SetTuple3(i, 255, 255, 255);
+            }
+
+            vtkSmartPointer<vtkPolyData> polyData = vtkSmartPointer<vtkPolyData>::New();
+            polyData->SetPoints(points);
+            polyData->SetVerts(verts);
+            polyData->GetPointData()->SetNormals(normals);
+            polyData->GetPointData()->SetScalars(colors);
+
+            /// we'll show each point as a triangle.
+            /// create a triangle with sides of lenght 1
+            vtkSmartPointer<vtkRegularPolygonSource> squad = vtkSmartPointer<vtkRegularPolygonSource>::New();
+            squad->SetNumberOfSides(6);
+            squad->SetRadius(1);
+            squad->SetCenter(0, 0, 0);
+
+            /// add the triangle to each point
+            vtkSmartPointer<vtkGlyph3DMapper> glypher = vtkSmartPointer<vtkGlyph3DMapper>::New();
+            glypher->SetInputData(polyData);
+            glypher->SetSourceConnection(squad->GetOutputPort());
+            glypher->OrientOn();
+//            glyph->SetVectorModeToUseNormal();
+//            glyph->SetColorModeToColorByScalar(); // use colors from scalar field
+            glypher->SetScaleFactor(0.0001);
+
+
+            qDebug() << "creating poly data took" << time.elapsed() << "msecs";
+
+            vtkSmartPointer<vtkActor> glyphActor = vtkSmartPointer<vtkActor>::New();
+            glyphActor->SetMapper(glypher);
+
+            m_renderer->AddActor(glyphActor);
+
+            /*
+            m_pclViewer->addModelFromPolyData(glyph->GetOutput(), id);
+
+            const auto actorMap = m_pclViewer->getShapeActorMap();
+            const auto iterator = actorMap->find(id);
+            if (iterator == actorMap->end()) {
+                qWarning() << "the actor we just added was not found";
+                return;
+            }
+
+            vtkActor* actor = vtkActor::SafeDownCast(iterator->second);
+            if (!actor) {
+                qWarning() << "the actor we just added is invalid";
+                return;
+            }
+
+            auto property = actor->GetProperty();
+            property->SetInterpolationToFlat();
+            property->SetSpecular(COMP_SPECULAR);
+            property->SetDiffuse(COMP_DIFFUSE);
+            property->SetAmbient(COMP_AMBIENT);
+*/
+
     } else {
         m_pclViewer->removePointCloud(qPrintable(m_pointCloud->id()));
     }
@@ -1405,10 +1490,11 @@ void ZCloudViewWindow::on_actionViewSurface_toggled(bool arg1)
 {
     QString id = QString("%1__%2").arg(m_pointCloud->id()).arg("surface");
     if (arg1) {
-        m_pclViewer->addPolygonMesh(*m_pointCloud->pclSurfaceMesh(),
-                                    qPrintable(id));
+        vtkSmartPointer<vtkPolyData> polyData;
+        pcl::VTKUtils::mesh2vtk(*m_pointCloud->pclSurfaceMesh(), polyData);
+        m_pclViewer->addModelFromPolyData(polyData, qPrintable(id));
     } else {
-        m_pclViewer->removePolygonMesh(qPrintable(id));
+        m_pclViewer->removeShape(qPrintable(id));
     }
 
     ui->qvtkWidget->update();
