@@ -1,60 +1,82 @@
 #include "quickVtkFboOffscreenWindow.hpp"
 #include "quickVtkFboRenderer.hpp"
 
-namespace quick {
+FboOffscreenWindow::FboOffscreenWindow()
+    : vtkExternalOpenGLRenderWindow()
+    , QOpenGLFunctions()
+    , QtParentRenderer(nullptr)
+{
+	qDebug() << Q_FUNC_INFO;
 
-    namespace Vtk {
+	OffScreenRenderingOn();
+}
 
-        FboOffscreenWindow::FboOffscreenWindow() : QtParentRenderer(0) {
-            this->OffScreenRenderingOn();
-        }
+FboOffscreenWindow::~FboOffscreenWindow()
+{
+	qDebug() << Q_FUNC_INFO;
 
-        auto FboOffscreenWindow::New() -> FboOffscreenWindow* {
-            return new FboOffscreenWindow();
-        }
+	OffScreenRendering = 0;
+}
 
-        auto FboOffscreenWindow::OpenGLInitState() -> void {
-            Superclass::OpenGLInitState();
+auto FboOffscreenWindow::New() -> FboOffscreenWindow*
+{
+	qDebug() << Q_FUNC_INFO;
 
-            this->MakeCurrent();
-            initializeOpenGLFunctions();
+	return new FboOffscreenWindow();
+}
 
-            Superclass::OpenGLInitState();
-            glUseProgram(0);
+auto FboOffscreenWindow::OpenGLInitState() -> void
+{
+	qDebug() << Q_FUNC_INFO;
 
-            glEnable(GL_BLEND);
-            glHint(GL_CLIP_VOLUME_CLIPPING_HINT_EXT, GL_FASTEST);
-            glDepthMask(GL_TRUE);
-        }
+	Superclass::OpenGLInitState();
 
-        auto FboOffscreenWindow::Render() -> void {
-            if (this->QtParentRenderer) {
-                this->QtParentRenderer->update();
-            }
-        }
+	MakeCurrent();
+	initializeOpenGLFunctions();
 
-        auto FboOffscreenWindow::InternalRender() -> void {
-            Superclass::Render();
-        }
+	Superclass::OpenGLInitState();
+	glUseProgram(0);
 
-        auto FboOffscreenWindow::SetFramebufferObject(QOpenGLFramebufferObject *fbo) -> void {
-            this->BackLeftBuffer = this->FrontLeftBuffer = this->BackBuffer = this->FrontBuffer = static_cast<unsigned int>(GL_COLOR_ATTACHMENT0);
+	glEnable(GL_BLEND);
+	glHint(GL_CLIP_VOLUME_CLIPPING_HINT_EXT, GL_FASTEST);
+	glDepthMask(GL_TRUE);
+}
 
-            auto size                    = fbo->size();
+auto FboOffscreenWindow::Render() -> void
+{
+	qDebug() << Q_FUNC_INFO;
 
-            this->Size[0]                   = size.width();
-            this->Size[1]                   = size.height();
-            this->NumberOfFrameBuffers      = 1;
-            this->FrameBufferObject         = static_cast<unsigned int>(fbo->handle());
-            this->DepthRenderBufferObject   = 0;
-            this->TextureObjects[0]         = static_cast<unsigned int>(fbo->texture());
-            this->OffScreenRendering        = 1;
-            this->OffScreenUseFrameBuffer   = 1;
-            this->Modified();
-        }
+	if (QtParentRenderer) {
+		QtParentRenderer->update();
+	}
+}
 
-        FboOffscreenWindow::~FboOffscreenWindow() {
-            this->OffScreenRendering = 0;
-        }
-    }
+auto FboOffscreenWindow::InternalRender() -> void
+{
+	qDebug() << Q_FUNC_INFO;
+
+	try {
+		Superclass::Render();
+	} catch (...) {
+		qWarning() << "exception in Superclass::Render()";
+	}
+}
+
+auto FboOffscreenWindow::SetFramebufferObject(QOpenGLFramebufferObject *fbo) -> void
+{
+	qDebug() << Q_FUNC_INFO;
+
+	BackLeftBuffer = FrontLeftBuffer = BackBuffer = FrontBuffer = static_cast<unsigned int>(GL_COLOR_ATTACHMENT0);
+
+	auto size                 = fbo->size();
+
+	Size[0]                   = size.width();
+	Size[1]                   = size.height();
+	NumberOfFrameBuffers      = 1;
+	FrameBufferObject         = static_cast<unsigned int>(fbo->handle());
+	DepthRenderBufferObject   = 0;
+	TextureObjects[0]         = static_cast<unsigned int>(fbo->texture());
+	OffScreenRendering        = 1;
+	OffScreenUseFrameBuffer   = 1;
+	Modified();
 }

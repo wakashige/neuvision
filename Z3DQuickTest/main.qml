@@ -9,7 +9,7 @@ ApplicationWindow {
     width: 640
     height: 480
     title: qsTr("Hello World")
-
+    /*
     SwipeView {
         id: swipeView
         anchors.fill: parent
@@ -43,6 +43,73 @@ ApplicationWindow {
         }
         TabButton {
             text: qsTr("Second")
+        }
+    }
+*/
+    StackView {
+        id: stack
+        anchors.fill: parent
+        initialItem: mainView
+    }
+
+    Component {
+        id: mainView
+
+        Item {
+            //            anchors.fill: parent
+
+            VtkViewer {
+                anchors.fill: parent
+                mouseEnabled: true;
+                smooth: true
+                antialiasing: true
+            }
+
+            Button {
+                anchors.centerIn: parent
+                text: "click me"
+                opacity: 0.5
+                onClicked: stack.push(manualAlignView)
+            }
+        }
+    }
+
+    //    Component {
+    Item {
+        id: manualAlignView
+        //                anchors.fill: parent
+        visible: false
+
+        RowLayout {
+            anchors.fill: parent
+
+            VtkViewer {
+//                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Layout.minimumWidth: 300
+                Layout.minimumHeight: 300
+
+                mouseEnabled: true;
+                smooth: true
+                antialiasing: true
+            }
+
+            VtkViewer {
+//                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Layout.minimumWidth: 300
+                Layout.minimumHeight: 300
+
+                mouseEnabled: true;
+                smooth: true
+                antialiasing: true
+            }
+
+            Button {
+                text: "back"
+                opacity: 0.5
+                onClicked: stack.pop()
+            }
         }
     }
 }

@@ -4,20 +4,18 @@
 
 #include <vtkWin32RenderWindowInteractor.h>
 
-namespace quick {
+class Win32Interactor : public vtkWin32RenderWindowInteractor
+{
+public:
+	vtkTypeMacro(Win32Interactor, vtkWin32RenderWindowInteractor)
 
-    namespace Vtk {
+	static Win32Interactor* New();
 
-        class Win32Interactor : public vtkWin32RenderWindowInteractor {
-        public:
-            vtkTypeMacro(Win32Interactor, vtkWin32RenderWindowInteractor);
-            static Win32Interactor* New();
-            auto Win32Interactor::Initialize() -> void;
-        protected:
-            Win32Interactor() = default;
-            virtual ~Win32Interactor() = default;
-        };
-    }
-}
+	auto Initialize() -> void;
+
+protected:
+	Win32Interactor() = default;
+	virtual ~Win32Interactor() = default;
+};
 
 #endif

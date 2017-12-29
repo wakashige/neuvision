@@ -13,98 +13,125 @@
 #include <vtkSmartPointer.h>
 #include <vtkRenderer.h>
 
-namespace quick {
+Viewer::Viewer()
+    : QQuickFramebufferObject()
+    , m_renderer(nullptr)
+    , m_win(FboOffscreenWindow::New())
+{
+	qDebug() << Q_FUNC_INFO;
 
-    namespace Vtk {
+	setMirrorVertically(true);
 
-        Viewer::Viewer() {
-            this->m_renderer = 0;
-            m_win = FboOffscreenWindow::New();
+	m_renderer = vtkSmartPointer<vtkRenderer>::New();
+	m_renderer->SetBackground(0.9375, 0.9375, 0.9375);
+	m_renderer->SetBackground2(0.7375, 0.7375, 0.7375);
+	m_renderer->GradientBackgroundOn();
 
-            this->setMirrorVertically(true);
-        }
+	m_win->AddRenderer(m_renderer);
+}
 
-        auto Viewer::init() -> void {
-            auto rw = this->GetRenderWindow();
-            this->m_renderer = vtkSmartPointer<vtkRenderer>::New();
-            rw->AddRenderer(m_renderer);
-            this->m_initialized = true;
+Viewer::~Viewer()
+{
+	qDebug() << Q_FUNC_INFO;
 
-            this->update();
-        }
-        
-        auto Viewer::update() -> void {
-            if (!this->m_initialized) {
-                return;
-            }
+	m_win->Delete();
+}
 
-            if (this->m_fboRenderer) {
-                QQuickFramebufferObject::update();
-            }
-        }
+auto Viewer::init() -> void
+{
+	qDebug() << Q_FUNC_INFO;
 
-        auto Viewer::setHoverEnabled(bool hoverEnabled) -> void {
-            this->m_hoverEnabled = hoverEnabled;
+//	auto rw = GetRenderWindow();
+//	m_renderer = vtkSmartPointer<vtkRenderer>::New();
+//	rw->AddRenderer(m_renderer);
+	m_initialized = true;
 
-            setAcceptHoverEvents(hoverEnabled);
+	update();
+}
 
-            emit this->hoverEnabledChanged();
-        }
+auto Viewer::update() -> void
+{
+	qDebug() << Q_FUNC_INFO;
 
-        auto Viewer::setMouseEnabled(bool mouseEnabled) -> void {
-            this->m_mouseEnabled = mouseEnabled;
+	if (!m_initialized) {
+		return;
+	}
 
-            if (mouseEnabled) {
-                setAcceptedMouseButtons(Qt::AllButtons);
-            }
-            else {
-                setAcceptedMouseButtons(Qt::NoButton);
-            }
+	if (m_fboRenderer) {
+		QQuickFramebufferObject::update();
+	}
+}
 
-            emit this->mouseEnabledChanged();
-        }
+auto Viewer::setHoverEnabled(bool hoverEnabled) -> void
+{
+	m_hoverEnabled = hoverEnabled;
 
-        auto Viewer::mousePressEvent(QMouseEvent* event) -> void {
-            if (this->m_fboRenderer) {
-                this->m_fboRenderer->onMouseEvent(event);
-            }
-        }
+	setAcceptHoverEvents(hoverEnabled);
 
-        auto Viewer::mouseReleaseEvent(QMouseEvent* event) -> void {
-            if (this->m_fboRenderer) {
-                this->m_fboRenderer->onMouseEvent(event);
-            }
-        }
+	emit hoverEnabledChanged();
+}
 
-        auto Viewer::mouseMoveEvent(QMouseEvent* event) -> void {
-            if (this->m_fboRenderer) {
-                this->m_fboRenderer->onMouseEvent(event);
-            }
-        }
+auto Viewer::setMouseEnabled(bool mouseEnabled) -> void
+{
+	m_mouseEnabled = mouseEnabled;
 
-        auto Viewer::hoverMoveEvent(QHoverEvent* event) -> void {
-        }
+	if (mouseEnabled) {
+		setAcceptedMouseButtons(Qt::AllButtons);
+	} else {
+		setAcceptedMouseButtons(Qt::NoButton);
+	}
 
-        auto Viewer::createRenderer() const -> QQuickFramebufferObject::Renderer* {
-            this->m_fboRenderer = new FboRenderer(static_cast<FboOffscreenWindow*>(m_win));
+	emit mouseEnabledChanged();
+}
 
-            return this->m_fboRenderer;
-        }
+auto Viewer::mousePressEvent(QMouseEvent* event) -> void
+{
+	if (m_fboRenderer) {
+		m_fboRenderer->onMouseEvent(event);
+	}
+}
 
-        auto Viewer::GetRenderWindow() const -> vtkGenericOpenGLRenderWindow* {
-            return m_win;
-        }
+auto Viewer::mouseReleaseEvent(QMouseEvent* event) -> void
+{
+	if (m_fboRenderer) {
+		m_fboRenderer->onMouseEvent(event);
+	}
+}
 
-        auto Viewer::getHoverEnabled() -> bool {
-            return this->m_hoverEnabled;
-        }
+auto Viewer::mouseMoveEvent(QMouseEvent* event) -> void
+{
+	if (m_fboRenderer) {
+		m_fboRenderer->onMouseEvent(event);
+	}
+}
 
-        auto Viewer::getMouseEnabled() -> bool {
-            return this->m_mouseEnabled;
-        }
+auto Viewer::hoverMoveEvent(QHoverEvent* event) -> void
+{
 
-        Viewer::~Viewer() {
-            m_win->Delete();
-        }
-    }
+}
+
+auto Viewer::createRenderer() const -> QQuickFramebufferObject::Renderer*
+{
+	qDebug() << Q_FUNC_INFO;
+
+	m_fboRenderer = new FboRenderer(static_cast<FboOffscreenWindow*>(m_win));
+
+	return m_fboRenderer;
+}
+
+auto Viewer::GetRenderWindow() const -> vtkGenericOpenGLRenderWindow*
+{
+	qDebug() << Q_FUNC_INFO;
+
+	return m_win;
+}
+
+auto Viewer::getHoverEnabled() -> bool
+{
+	return m_hoverEnabled;
+}
+
+auto Viewer::getMouseEnabled() -> bool
+{
+	return m_mouseEnabled;
 }

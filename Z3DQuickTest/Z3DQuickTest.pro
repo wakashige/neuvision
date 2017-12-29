@@ -1,4 +1,4 @@
-QT += quick gui widgets opengl
+QT += quick opengl
 CONFIG += c++14
 
 # The following define makes your compiler emit warnings if you use
@@ -21,10 +21,10 @@ HEADERS += \
 
 SOURCES += main.cpp \
 #    QVTKFramebufferObjectItem.cpp \
-    quickVtkFboOffscreenWindow.cpp \
-    quickVtkFboRenderer.cpp \
+    quickVtkWin32Interactor.cpp \
     quickVtkViewer.cpp \
-    quickVtkWin32Interactor.cpp
+    quickVtkFboOffscreenWindow.cpp \
+    quickVtkFboRenderer.cpp
 
 RESOURCES += qml.qrc
 
@@ -39,6 +39,6 @@ qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
-################################################################################
-## PCL
-macx:include($$PWD/../3rdparty/pcl.pri)
+#################################################################################
+### VTK
+include($$PWD/../3rdparty/vtk.pri)

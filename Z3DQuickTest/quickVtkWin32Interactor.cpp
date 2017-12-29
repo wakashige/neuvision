@@ -5,37 +5,34 @@
 #include <vtkWin32OpenGLRenderWindow.h>
 #include <vtkObjectFactory.h>
 
-namespace quick {
+#include <QDebug>
 
-    namespace Vtk {
+vtkStandardNewMacro(Win32Interactor)
 
-        vtkStandardNewMacro(Win32Interactor);
+void Win32Interactor::Initialize()
+{
+	qDebug() << Q_FUNC_INFO;
 
-        void Win32Interactor::Initialize() {
-            vtkWin32OpenGLRenderWindow* ren;
-            int *size;
+	if (!RenderWindow) {
+		vtkErrorMacro(<< "No renderer defined!");
+		return;
+	}
 
-            if (!this->RenderWindow) {
-                vtkErrorMacro(<< "No renderer defined!");
-                return;
-            }
+	if (Initialized) {
+		return;
+	}
 
-            if (this->Initialized) {
-                return;
-            }
+	Initialized = 1;
 
-            this->Initialized = 1;
+	vtkWin32OpenGLRenderWindow* ren = (vtkWin32OpenGLRenderWindow *)(RenderWindow);
+	ren->Start();
 
-            ren = (vtkWin32OpenGLRenderWindow *)(this->RenderWindow);
-            ren->Start();
-            size = ren->GetSize();
-            ren->GetPosition();
-            this->WindowId = 0;
-            this->Enable();
-            this->Size[0] = size[0];
-            this->Size[1] = size[1];
-        }
-    }
+	auto size = ren->GetSize();
+	ren->GetPosition();
+	WindowId = 0;
+	Enable();
+	Size[0] = size[0];
+	Size[1] = size[1];
 }
 
 #endif
