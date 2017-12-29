@@ -5,23 +5,21 @@
 
 #include <vtkExternalOpenGLRenderWindow.h>
 
-namespace quick {
+class FboRenderer;
 
-    namespace Vtk {
+class FboOffscreenWindow : public vtkExternalOpenGLRenderWindow, protected QOpenGLFunctions
+{
+public:
+	static auto New() -> FboOffscreenWindow*;
 
-        class FboRenderer;
+	virtual auto OpenGLInitState() -> void override;
+	auto Render() -> void override;
+	auto InternalRender() -> void;
+	auto SetFramebufferObject(QOpenGLFramebufferObject*) -> void;
 
-        class FboOffscreenWindow : public vtkExternalOpenGLRenderWindow, protected QOpenGLFunctions {
-        public:
-            FboRenderer* QtParentRenderer;
-            static auto New() -> FboOffscreenWindow*;
-            virtual auto OpenGLInitState() -> void override;
-            auto Render() -> void override;
-            auto InternalRender() -> void;
-            auto SetFramebufferObject(QOpenGLFramebufferObject*) -> void;
-        protected:
-            FboOffscreenWindow();
-            ~FboOffscreenWindow();
-        };
-    }
-}
+	FboRenderer* QtParentRenderer;
+
+protected:
+	FboOffscreenWindow();
+	~FboOffscreenWindow();
+};
