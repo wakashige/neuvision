@@ -23,9 +23,10 @@ Viewer::Viewer()
 	setMirrorVertically(true);
 
 	m_renderer = vtkSmartPointer<vtkRenderer>::New();
-    m_renderer->SetBackground2(0.7, 0.7, 0.7);
-    m_renderer->SetBackground(0.6, 0.6, 0.6);
-	m_renderer->GradientBackgroundOn();
+
+    m_renderer->SetBackground(0.8, 0.8, 0.8);
+    m_renderer->SetBackground2(0.925, 0.925, 0.925);
+    m_renderer->GradientBackgroundOn();
 
 	m_win->AddRenderer(m_renderer);
 }

@@ -59,10 +59,10 @@ auto FboRenderer::render() -> void
 {
 	qDebug() << Q_FUNC_INFO;
 
-//	m_fboOffscreenWindow->PushState();
-//	m_fboOffscreenWindow->OpenGLInitState();
-	m_fboOffscreenWindow->InternalRender();
-//	m_fboOffscreenWindow->PopState();
+//    m_fboOffscreenWindow->PushState();
+//    m_fboOffscreenWindow->OpenGLInitState();
+    m_fboOffscreenWindow->InternalRender();
+//    m_fboOffscreenWindow->PopState();
 }
 
 auto FboRenderer::createFramebufferObject(const QSize &size) -> QOpenGLFramebufferObject*

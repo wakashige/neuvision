@@ -7,7 +7,7 @@
 #endif
 
 //#include <QApplication>
-#include <QGuiApplication>
+//#include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QTimer>
 #include <QWindow>
@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
 		vtkNew<vtkActor> actor;
 		mapper->SetInputConnection(polyDataSource->GetOutputPort());
 		actor->SetMapper(mapper);
-		actor->GetProperty()->SetOpacity(0.5); // demonstrate support for translucent VTK objects
+//		actor->GetProperty()->SetOpacity(0.5); // demonstrate support for translucent VTK objects
 
 
 /*

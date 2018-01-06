@@ -30,7 +30,7 @@ auto FboOffscreenWindow::OpenGLInitState() -> void
     qDebug() << Q_FUNC_INFO;
 
 	Superclass::OpenGLInitState();
-/*
+
 	MakeCurrent();
 	initializeOpenGLFunctions();
 
@@ -39,7 +39,7 @@ auto FboOffscreenWindow::OpenGLInitState() -> void
 
 	glEnable(GL_BLEND);
 	glHint(GL_CLIP_VOLUME_CLIPPING_HINT_EXT, GL_FASTEST);
-    glDepthMask(GL_TRUE);*/
+    glDepthMask(GL_TRUE);
 }
 
 auto FboOffscreenWindow::Render() -> void

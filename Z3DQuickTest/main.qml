@@ -1,6 +1,8 @@
 import QtQuick 2.7
 import QtQuick.Controls 2.0
+import QtQuick.Dialogs 1.3
 import QtQuick.Layouts 1.3
+
 import QtGraphicalEffects 1.0
 
 import QuickVTK 1.0
@@ -10,8 +12,10 @@ ApplicationWindow {
     visible: true
     width: 640
     height: 480
-    title: qsTr("Hello World")
-    background: Rectangle { color: Qt.rgba(0,0,0,1) }
+    title: qsTr("Z3D")
+    background: Rectangle { color: backgroundColor }
+
+    property color backgroundColor: Qt.rgba(0.925, 0.925, 0.925, 1)
 
     RowLayout {
         anchors.fill: parent
@@ -39,37 +43,59 @@ ApplicationWindow {
                     id: mouseArea
                     hoverEnabled: true
                     anchors.fill: parent
-                }
-
-                Rectangle {
-                    anchors.fill: parent
-                    color: Qt.rgba(0.2, 0.2, 0.2, 1)
-                }
-
-                Item {
-                    visible: mouseArea.containsMouse
-                    anchors.right: parent.right
-                    anchors.rightMargin: -2
-                    height: parent.height
-                    width: 3
 
                     Rectangle {
-                        anchors.centerIn: parent
-                        width: parent.height
-                        height: 3
-                        rotation: -90
-                        transformOrigin: Item.Center
-                        gradient: Gradient {
-                            GradientStop {
-                                position: 0.0;
-                                color: Qt.rgba(0, 0, 0, 1)
+                        anchors.fill: parent
+                        color: Qt.rgba(0.2, 0.2, 0.2, 1)
+
+                        Button {
+                            id: fileButton
+                            width: parent.width
+                            text: "Open file"
+                            onClicked: {
+                                fileDialog.open()
                             }
-                            GradientStop {
-                                position: 1.0;
-                                color: Qt.rgba(0.2, 0.2, 0.2, 0)
+
+                            FileDialog {
+                                id: fileDialog
+                                title: "Please choose a file"
+                                folder: shortcuts.home
+                                nameFilters: [ "Point cloud files (*.pcd *.ply)", "All files (*)" ]
+                                onAccepted: {
+                                    console.log("You chose: " + fileDialog.fileUrls)
+                                }
+                                onRejected: {
+                                    console.log("Canceled")
+                                }
                             }
                         }
                     }
+
+                    /*Item {
+                        visible: mouseArea.containsMouse
+                        anchors.right: parent.right
+                        anchors.rightMargin: -2
+                        height: parent.height
+                        width: 3
+
+                        Rectangle {
+                            anchors.centerIn: parent
+                            width: parent.height
+                            height: 3
+                            rotation: -90
+                            transformOrigin: Item.Center
+                            gradient: Gradient {
+                                GradientStop {
+                                    position: 0.0;
+                                    color: Qt.rgba(0, 0, 0, 1)
+                                }
+                                GradientStop {
+                                    position: 1.0;
+                                    color: Qt.rgba(0.2, 0.2, 0.2, 0)
+                                }
+                            }
+                        }
+                    }*/
                 }
             }
         }
@@ -141,8 +167,6 @@ ApplicationWindow {
                     VtkViewer {
                         anchors.fill: parent
                         mouseEnabled: true;
-                        smooth: true
-                        antialiasing: true
                     }
 
                     Button {
@@ -160,7 +184,7 @@ ApplicationWindow {
                 Item {
                     Rectangle {
                         anchors.fill: parent
-                        color: "gray"
+                        color: backgroundColor
                     }
 
                     Button {
